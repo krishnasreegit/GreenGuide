@@ -1,0 +1,23 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h2 class="text-green">Admin Dashboard</h2>
+<div class="row mt-3 g-3">
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Total Plants</h5>
+                <p class="card-text display-6 fw-bold text-green">{{ total_plants }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Care Recommendations</h5>
+                <p class="card-text display-6 fw-bold text-green">{{ total_recommendations }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+<a href="{% url 'plant_form' %}" class="btn btn-green mt-3">Add Plant</a>
+{% endblock %} 

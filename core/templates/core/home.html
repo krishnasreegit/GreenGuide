@@ -1,0 +1,22 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="hero">
+    <h1 class="display-5 fw-bold text-green">Grow with GreenGuide</h1>
+    <p class="lead">Smart, simple and sustainable plant care—rooted in AI.</p>
+    <div class="mt-3">
+        <a href="{% url 'plant_form' %}" class="btn btn-green btn-lg me-2">Add a Plant</a>
+        <a href="{% url 'chatbot' %}" class="btn btn-outline-green btn-lg">Ask the Chatbot</a>
+    </div>
+    <div class="mt-4">
+        {% if user.is_authenticated %}
+            {% if user.is_staff %}
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-green">Go to Dashboard</a>
+            {% endif %}
+            <a href="{% url 'logout' %}" class="btn btn-link link">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-green">Login</a>
+            <a href="{% url 'register' %}" class="btn btn-link link">Register</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,11 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h2>Care Chart for {{ plant.name }}</h2>
+<ul class="list-group">
+    <li class="list-group-item"><strong>Watering Schedule:</strong> {{ rec.watering_schedule }}</li>
+    <li class="list-group-item"><strong>Sunlight:</strong> {{ rec.sunlight_amount }}</li>
+    <li class="list-group-item"><strong>Fertilizer:</strong> {{ rec.fertilizer_usage }}</li>
+    <li class="list-group-item"><strong>Seasonal Care:</strong> {{ rec.seasonal_care }}</li>
+</ul>
+<a href="{% url 'home' %}" class="btn btn-secondary mt-3">Back to Home</a>
+{% endblock %} 

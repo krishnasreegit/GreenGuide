@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GreenGuide</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        :root {
+            --green-900: #0b3d2e;
+            --green-800: #115e46;
+            --green-700: #187054;
+            --green-600: #1e8a66;
+            --green-500: #24a773;
+            --green-400: #44c387;
+            --green-300: #7dd3ae;
+            --green-200: #b8e7cf;
+            --green-100: #e8f7ee;
+            --leaf-1: #a8e063;
+            --leaf-2: #56ab2f;
+            --accent: #ffd166;
+            /* Glass controls */
+            --glass-blur: 3px;
+            --glass-tint: rgba(60, 120, 90, 0.08);
+        }
+        body {
+            position: relative;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--green-100), var(--green-200)) fixed;
+            background-image: radial-gradient(circle at 10% 10%, rgba(168,224,99,0.12) 0, transparent 50%),
+                              radial-gradient(circle at 90% 30%, rgba(68,195,135,0.18) 0, transparent 55%),
+                              radial-gradient(circle at 30% 80%, rgba(36,167,115,0.15) 0, transparent 50%);
+            color: #0f2e24;
+            overflow-x: hidden;
+        }
+        /* Full-page leafy background layer */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.28;
+            filter: saturate(1.2) contrast(1.05);
+            z-index: -3;
+        }
+        /* Front-layer canvas for droplets */
+        #droplet-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        /* Refractive blur overlay masked by droplets */
+        #refract-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            pointer-events: none;
+            backdrop-filter: blur(var(--glass-blur)) saturate(1.05);
+            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.05);
+            background: var(--glass-tint);
+            /* mask-image set dynamically from canvas */
+        }
+        .navbar {
+            background: linear-gradient(90deg, var(--leaf-2), var(--leaf-1));
+            box-shadow: 0 8px 24px rgba(17, 94, 70, 0.25);
+        }
+        .navbar .navbar-brand, .navbar .nav-link { color: #f5fff8 !important; }
+        .navbar .nav-link:hover { color: #ffffff !important; text-decoration: underline; }
+        .card { border: none; border-radius: 14px; box-shadow: 0 10px 24px rgba(11, 61, 46, 0.12); }
+        .card .card-title { color: var(--green-800); }
+        .btn-green { background: var(--green-600); color: #fff; border: 0; box-shadow: 0 6px 14px rgba(30,138,102,0.25); }
+        .btn-green:hover { background: var(--green-700); color: #fff; transform: translateY(-1px); box-shadow: 0 10px 20px rgba(24,112,84,0.3); }
+        .btn-outline-green { border-color: var(--green-600); color: var(--green-700); }
+        .btn-outline-green:hover { background: var(--green-600); color: #fff; }
+        .text-green { color: var(--green-700) !important; }
+        .hero {
+            border-radius: 18px;
+            padding: 48px;
+            background: rgba(255,255,255,0.82);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 14px 36px rgba(11, 61, 46, 0.18);
+        }
+        .stat-card { background: rgba(255,255,255,0.9); }
+        .form-control { border-radius: 10px; border-color: var(--green-300); }
+        .form-control:focus { border-color: var(--green-500); box-shadow: 0 0 0 .2rem rgba(36,167,115,.25); }
+        .link { color: var(--green-700); }
+        .link:hover { color: var(--green-800); }
+        /* Small plant badge in bottom corner */
+        .plant-badge {
+            position: fixed;
+            right: 16px;
+            bottom: 12px;
+            width: 56px;
+            height: 56px;
+            z-index: 900;
+            opacity: 0.9;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.15));
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="{% url 'home' %}">GreenGuide</a>
+            <div>
+                <a class="nav-link d-inline" href="{% url 'plant_form' %}">Add Plant</a>
+                <a class="nav-link d-inline" href="{% url 'chatbot' %}">Chatbot</a>
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <a class="nav-link d-inline" href="{% url 'admin_dashboard' %}">Dashboard</a>
+                    {% endif %}
+                    <a class="nav-link d-inline" href="{% url 'logout' %}">Logout</a>
+                {% else %}
+                    <a class="nav-link d-inline" href="{% url 'login' %}">Login</a>
+                    <a class="nav-link d-inline" href="{% url 'register' %}">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    <div id="refract-overlay"></div>
+    <canvas id="droplet-canvas"></canvas>
+    <svg class="plant-badge" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+            <linearGradient id="leafGrad" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#56ab2f"/>
+                <stop offset="100%" stop-color="#a8e063"/>
+            </linearGradient>
+        </defs>
+        <path d="M20 36c6-10 18-16 24-12 2 2-2 8-8 12-6 4-14 6-16 0z" fill="url(#leafGrad)"/>
+        <path d="M28 40c4-8 12-12 16-10 1 2-2 6-6 8-4 3-10 4-10 2z" fill="url(#leafGrad)"/>
+        <rect x="26" y="42" width="12" height="10" rx="2" fill="#7a5533"/>
+    </svg>
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
+    </div>
+    <script>
+        (function() {
+            const config = {
+                maxDroplets: 38,
+                spawnIntervalMs: 650,
+                minRadius: 3,
+                maxRadius: 13,
+                gravity: 26,
+                wind: 8,
+                trailFade: 0.055,
+                dropletAlpha: 0.52,
+                glintAlpha: 0.48,
+                mergeDistanceFactor: 0.62,
+                sitTimeMin: 500,
+                sitTimeMax: 2200,
+                stickyFraction: 0.35,
+                shimmerSpeed: 1.6,
+                lowFpsReduceFactor: 0.65,
+                maskUpdateMs: 110,
+                maskFeather: 0.6,
+                multiGlint: true,
+                sparkleIntensity: 0.9,
+                rimShine: 0.95,
+                // New motion-shine controls
+                speedShineBoost: 0.9,  // scales glint by vertical speed
+                streakThreshold: 120,  // px/s min vertical speed for streak
+                streakLength: 20,      // px length of motion streak
+                streakAlpha: 0.45,     // opacity of streak
+                twinkleChance: 0.12    // random twinkle chance per frame for fast drops
+            };
+
+            const canvas = document.getElementById('droplet-canvas');
+            const ctx = canvas.getContext('2d');
+            const trailCanvas = document.createElement('canvas');
+            const trailCtx = trailCanvas.getContext('2d');
+            const maskCanvas = document.createElement('canvas');
+            const maskCtx = maskCanvas.getContext('2d');
+            const refractEl = document.getElementById('refract-overlay');
+
+            let width = canvas.width = trailCanvas.width = maskCanvas.width = window.innerWidth;
+            let height = canvas.height = trailCanvas.height = maskCanvas.height = window.innerHeight;
+
+            const droplets = [];
+            let lastSpawn = 0;
+            let lastTs = performance.now();
+            let fpsSamples = [];
+            let lastMaskUpdate = 0;
+
+            function rand(min, max) { return Math.random() * (max - min) + min; }
+            function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+
+            function spawnDroplet() {
+                if (droplets.length >= config.maxDroplets) return;
+                const r = rand(config.minRadius, config.maxRadius);
+                const x = rand(r, width - r);
+                const y = rand(r, height * 0.55);
+                const sticky = Math.random() < config.stickyFraction;
+                droplets.push({
+                    x, y, r, sticky,
+                    vx: sticky ? 0 : rand(-config.wind, config.wind) * 0.15,
+                    vy: 0,
+                    sitUntil: performance.now() + rand(config.sitTimeMin, config.sitTimeMax) + (sticky ? rand(2000, 6000) : 0),
+                    alive: true,
+                    glintOffset: rand(0, Math.PI * 2),
+                    sparklePhase: rand(0, Math.PI * 2),
+                    lastX: x, lastY: y
+                });
+            }
+
+            function mergeDroplets() {
+                for (let i = 0; i < droplets.length; i++) {
+                    const a = droplets[i];
+                    if (!a.alive) continue;
+                    for (let j = i + 1; j < droplets.length; j++) {
+                        const b = droplets[j];
+                        if (!b.alive) continue;
+                        const dx = b.x - a.x;
+                        const dy = b.y - a.y;
+                        const dist = Math.hypot(dx, dy);
+                        const threshold = (a.r + b.r) * config.mergeDistanceFactor;
+                        if (dist < threshold) {
+                            const area = Math.PI * a.r * a.r + Math.PI * b.r * b.r;
+                            const newR = Math.sqrt(area / Math.PI);
+                            const nx = (a.x * a.r + b.x * b.r) / (a.r + b.r);
+                            const ny = (a.y * a.r + b.y * b.r) / (a.r + b.r);
+                            const nvx = (a.vx * a.r + b.vx * b.r) / (a.r + b.r);
+                            const nvy = (a.vy * a.r + b.vy * b.r) / (a.r + b.r);
+                            a.x = nx; a.y = ny; a.r = newR; a.vx = nvx; a.vy = nvy;
+                            a.sticky = a.sticky && b.sticky;
+                            b.alive = false;
+                        }
+                    }
+                }
+            }
+
+            function drawTrail(x, y, r) {
+                const g = trailCtx.createRadialGradient(x, y, 0, x, y, r * 1.3);
+                g.addColorStop(0, 'rgba(224,255,239,0.22)');
+                g.addColorStop(1, 'rgba(224,255,239,0)');
+                trailCtx.fillStyle = g;
+                trailCtx.beginPath();
+                trailCtx.arc(x, y, r * 1.3, 0, Math.PI * 2);
+                trailCtx.fill();
+                maskCtx.globalAlpha = 0.18;
+                maskCtx.beginPath();
+                maskCtx.arc(x, y, r * 1.15, 0, Math.PI * 2);
+                maskCtx.fill();
+                maskCtx.globalAlpha = 1;
+            }
+
+            function drawMotionStreak(d, speed) {
+                if (speed < config.streakThreshold) return;
+                const len = config.streakLength * (1 + (speed - config.streakThreshold) / config.streakThreshold);
+                const x1 = d.x, y1 = d.y - len;
+                const grad = ctx.createLinearGradient(d.x, d.y - len, d.x, d.y);
+                grad.addColorStop(0, 'rgba(255,255,255,0)');
+                grad.addColorStop(1, `rgba(255,255,255,${config.streakAlpha})`);
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.moveTo(x1 - d.r * 0.15, y1);
+                ctx.lineTo(x1 + d.r * 0.15, y1);
+                ctx.lineTo(d.x + d.r * 0.25, d.y);
+                ctx.lineTo(d.x - d.r * 0.25, d.y);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            function drawDroplet(d, t, speed) {
+                const bodyGrad = ctx.createRadialGradient(d.x, d.y, d.r * 0.15, d.x, d.y, d.r);
+                bodyGrad.addColorStop(0, 'rgba(255,255,255,0.68)');
+                bodyGrad.addColorStop(0.6, 'rgba(255,255,255,0.45)');
+                bodyGrad.addColorStop(1, 'rgba(255,255,255,0.12)');
+                ctx.fillStyle = bodyGrad;
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+                ctx.lineWidth = clamp(d.r * 0.18, 0.6, 2.2);
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, d.r, Math.PI * 0.15, Math.PI * 1.15);
+                ctx.stroke();
+
+                ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+                ctx.lineWidth = clamp(d.r * 0.16, 0.6, 2.2);
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, d.r, -Math.PI * 0.35, Math.PI * 0.2);
+                ctx.stroke();
+
+                // Speed-based glint boost
+                const speedBoost = 1 + (speed / 200) * config.speedShineBoost;
+                const pulse = d.sticky ? (0.75 + 0.25 * Math.sin(t * 1.6 + d.glintOffset)) : 1;
+                ctx.globalAlpha = clamp(config.glintAlpha * pulse * speedBoost, 0, 1);
+                const gx = d.x - d.r * 0.32;
+                const gy = d.y - d.r * 0.32;
+                const gr = d.r * 0.62;
+                const grad = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
+                grad.addColorStop(0, 'rgba(255,255,255,1)');
+                grad.addColorStop(0.7, 'rgba(255,255,255,0.8)');
+                grad.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(gx, gy, gr, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (config.multiGlint && d.r > 6) {
+                    const gx2 = d.x + d.r * 0.28;
+                    const gy2 = d.y + d.r * 0.28;
+                    const gr2 = d.r * 0.35;
+                    const grad2 = ctx.createRadialGradient(gx2, gy2, 0, gx2, gy2, gr2);
+                    grad2.addColorStop(0, 'rgba(255,255,255,0.95)');
+                    grad2.addColorStop(1, 'rgba(255,255,255,0)');
+                    ctx.fillStyle = grad2;
+                    ctx.beginPath();
+                    ctx.arc(gx2, gy2, gr2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Twinkles along path for fast-moving drops
+                if (!d.sticky && speed > config.streakThreshold && Math.random() < config.twinkleChance) {
+                    ctx.globalAlpha = 0.9;
+                    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+                    const tw = rand(0.8, 2.2);
+                    const tx = d.x + rand(-d.r * 0.3, d.r * 0.3);
+                    const ty = d.y - rand(6, 18);
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, tw, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.globalAlpha = 1;
+
+                // Mask for blur
+                const feather = clamp(d.r * config.maskFeather, 0.6, 12);
+                const mg = maskCtx.createRadialGradient(d.x, d.y, d.r - feather, d.x, d.y, d.r + feather);
+                mg.addColorStop(0, 'rgba(255,255,255,1)');
+                mg.addColorStop(1, 'rgba(255,255,255,0)');
+                maskCtx.fillStyle = mg;
+                maskCtx.beginPath();
+                maskCtx.arc(d.x, d.y, d.r + feather, 0, Math.PI * 2);
+                maskCtx.fill();
+            }
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+                trailCanvas.width = width;
+                trailCanvas.height = height;
+                maskCanvas.width = width;
+                maskCanvas.height = height;
+            }
+            window.addEventListener('resize', resize);
+
+            function loop(ts) {
+                const dt = Math.min(0.05, (ts - lastTs) / 1000);
+                lastTs = ts;
+
+                fpsSamples.push(1 / dt);
+                if (fpsSamples.length > 20) fpsSamples.shift();
+                const avgFps = fpsSamples.reduce((a,b)=>a+b,0) / fpsSamples.length;
+
+                if (ts - lastSpawn > config.spawnIntervalMs) {
+                    lastSpawn = ts;
+                    const densityFactor = avgFps < 45 ? config.lowFpsReduceFactor : 1;
+                    if (Math.random() < densityFactor) spawnDroplet();
+                }
+
+                trailCtx.fillStyle = `rgba(0,0,0,${config.trailFade})`;
+                trailCtx.globalCompositeOperation = 'destination-out';
+                trailCtx.fillRect(0, 0, width, height);
+                trailCtx.globalCompositeOperation = 'source-over';
+
+                maskCtx.clearRect(0, 0, width, height);
+
+                for (let i = 0; i < droplets.length; i++) {
+                    const d = droplets[i];
+                    if (!d.alive) continue;
+                    const prevX = d.x, prevY = d.y;
+                    if (d.sticky) {
+                        if (ts >= d.sitUntil && Math.random() < 0.004) {
+                            d.sticky = false; d.vy = 0; d.vx += rand(-0.5, 0.5);
+                        }
+                    } else if (ts >= d.sitUntil) {
+                        d.vy += config.gravity * dt;
+                        d.vx += (Math.random() - 0.5) * 0.35;
+                        d.x += d.vx * dt;
+                        d.y += d.vy * dt;
+                        drawTrail(d.x, d.y, d.r * 0.9);
+                    }
+                    if (d.x < d.r) { d.x = d.r; d.vx *= -0.2; }
+                    if (d.x > width - d.r) { d.x = width - d.r; d.vx *= -0.2; }
+                    if (d.y > height + d.r * 2) { d.alive = false; }
+                    d.lastX = prevX; d.lastY = prevY;
+                }
+
+                mergeDroplets();
+
+                for (let i = droplets.length - 1; i >= 0; i--) {
+                    if (!droplets[i].alive) droplets.splice(i, 1);
+                }
+
+                ctx.clearRect(0, 0, width, height);
+                ctx.drawImage(trailCanvas, 0, 0);
+                for (let i = 0; i < droplets.length; i++) {
+                    const d = droplets[i];
+                    if (!d.alive) continue;
+                    const dx = d.x - d.lastX; const dy = d.y - d.lastY;
+                    const speed = Math.hypot(dx, dy) / dt; // px/s
+                    drawMotionStreak(d, speed);
+                    drawDroplet(d, ts / 1000, speed);
+                }
+
+                if (ts - lastMaskUpdate > config.maskUpdateMs) {
+                    lastMaskUpdate = ts;
+                    try {
+                        const url = maskCanvas.toDataURL('image/png');
+                        refractEl.style.webkitMaskImage = `url(${url})`;
+                        refractEl.style.maskImage = `url(${url})`;
+                        refractEl.style.maskRepeat = 'no-repeat';
+                        refractEl.style.webkitMaskRepeat = 'no-repeat';
+                        refractEl.style.maskSize = '100% 100%';
+                        refractEl.style.webkitMaskSize = '100% 100%';
+                    } catch (e) {}
+                }
+
+                requestAnimationFrame(loop);
+            }
+
+            resize();
+            requestAnimationFrame(loop);
+        })();
+    </script>
+</body>
+</html> 
