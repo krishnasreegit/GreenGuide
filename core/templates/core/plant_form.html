@@ -1,9 +1,69 @@
 {% extends 'core/base.html' %}
 {% block content %}
-<h2>Add Your Plant</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Get Care Recommendation</button>
-</form>
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card stat-card p-4">
+            <h2 class="mb-3 text-green">Add Your Plant</h2>
+            <p class="text-muted mb-4">Get AI-powered care recommendations for your plant.</p>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <label class="form-label" for="id_name">Plant Name</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label" for="id_growth">Growth Rate</label>
+                    {{ form.growth }}
+                    {% if form.growth.errors %}
+                        <div class="text-danger small mt-1">{{ form.growth.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label" for="id_soil_type">Soil Type</label>
+                    {{ form.soil_type }}
+                    {% if form.soil_type.errors %}
+                        <div class="text-danger small mt-1">{{ form.soil_type.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label" for="id_sunlight">Sunlight</label>
+                    {{ form.sunlight }}
+                    {% if form.sunlight.errors %}
+                        <div class="text-danger small mt-1">{{ form.sunlight.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label" for="id_watering_frequency">Watering Frequency</label>
+                    {{ form.watering_frequency }}
+                    {% if form.watering_frequency.errors %}
+                        <div class="text-danger small mt-1">{{ form.watering_frequency.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label" for="id_fertilizer_type">Fertilizer Type</label>
+                    {{ form.fertilizer_type }}
+                    {% if form.fertilizer_type.errors %}
+                        <div class="text-danger small mt-1">{{ form.fertilizer_type.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <button type="submit" class="btn btn-green w-100">
+                    <i class="fas fa-robot me-2"></i>Get AI Care Recommendation
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %} 

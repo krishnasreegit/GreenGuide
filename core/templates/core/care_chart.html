@@ -1,11 +1,74 @@
 {% extends 'core/base.html' %}
 {% block content %}
-<h2>Care Chart for {{ plant.name }}</h2>
-<ul class="list-group">
-    <li class="list-group-item"><strong>Watering Schedule:</strong> {{ rec.watering_schedule }}</li>
-    <li class="list-group-item"><strong>Sunlight:</strong> {{ rec.sunlight_amount }}</li>
-    <li class="list-group-item"><strong>Fertilizer:</strong> {{ rec.fertilizer_usage }}</li>
-    <li class="list-group-item"><strong>Seasonal Care:</strong> {{ rec.seasonal_care }}</li>
-</ul>
-<a href="{% url 'home' %}" class="btn btn-secondary mt-3">Back to Home</a>
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card stat-card p-4">
+            <div class="text-center mb-4">
+                <h2 class="text-green mb-2">🌱 Care Chart for {{ plant.name }}</h2>
+                <p class="text-muted">AI-Powered Plant Care Recommendations</p>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 border-0" style="background: linear-gradient(135deg, #e8f7ee, #b8e7cf);">
+                        <div class="card-body text-center">
+                            <i class="fas fa-tint text-primary mb-2" style="font-size: 2rem;"></i>
+                            <h5 class="card-title text-green">Watering Schedule</h5>
+                            <p class="card-text fw-bold">{{ rec.watering_schedule }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 border-0" style="background: linear-gradient(135deg, #fff3cd, #ffeaa7);">
+                        <div class="card-body text-center">
+                            <i class="fas fa-sun text-warning mb-2" style="font-size: 2rem;"></i>
+                            <h5 class="card-title text-green">Sunlight</h5>
+                            <p class="card-text fw-bold">{{ rec.sunlight_amount }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 border-0" style="background: linear-gradient(135deg, #d1ecf1, #bee5eb);">
+                        <div class="card-body text-center">
+                            <i class="fas fa-seedling text-success mb-2" style="font-size: 2rem;"></i>
+                            <h5 class="card-title text-green">Fertilizer</h5>
+                            <p class="card-text fw-bold">{{ rec.fertilizer_usage }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 border-0" style="background: linear-gradient(135deg, #f8d7da, #f5c6cb);">
+                        <div class="card-body text-center">
+                            <i class="fas fa-calendar-alt text-danger mb-2" style="font-size: 2rem;"></i>
+                            <h5 class="card-title text-green">Seasonal Care</h5>
+                            <p class="card-text fw-bold">{{ rec.seasonal_care }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 p-3 rounded" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb);">
+                <h6 class="text-primary mb-2"><i class="fas fa-robot me-2"></i>AI Recommendation Details</h6>
+                <p class="mb-1"><strong>Plant Name:</strong> {{ plant.name }}</p>
+                <p class="mb-1"><strong>Growth Rate:</strong> {{ plant.get_growth_display }}</p>
+                <p class="mb-1"><strong>Soil Type:</strong> {{ plant.soil_type }}</p>
+                <p class="mb-1"><strong>Sunlight:</strong> {{ plant.sunlight }}</p>
+                <p class="mb-1"><strong>Current Watering:</strong> {{ plant.watering_frequency }}</p>
+                <p class="mb-0"><strong>Fertilizer Type:</strong> {{ plant.get_fertilizer_type_display }}</p>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'home' %}" class="btn btn-green me-2">
+                    <i class="fas fa-home me-2"></i>Back to Home
+                </a>
+                <a href="{% url 'plant_form' %}" class="btn btn-outline-green">
+                    <i class="fas fa-plus me-2"></i>Add Another Plant
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %} 

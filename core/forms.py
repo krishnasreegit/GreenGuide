@@ -4,9 +4,29 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 
 class PlantForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to all fields
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({
+                'class': 'form-control'
+            })
+            if field_name == 'name':
+                field.widget.attrs['placeholder'] = 'Enter plant name'
+            elif field_name == 'growth':
+                field.widget.attrs['placeholder'] = 'Select growth rate'
+            elif field_name == 'soil_type':
+                field.widget.attrs['placeholder'] = 'e.g., Sandy, Well-drained, Loamy'
+            elif field_name == 'sunlight':
+                field.widget.attrs['placeholder'] = 'e.g., Full sunlight, Partial sunlight, Indirect sunlight'
+            elif field_name == 'watering_frequency':
+                field.widget.attrs['placeholder'] = 'e.g., Water weekly, Keep soil moist'
+            elif field_name == 'fertilizer_type':
+                field.widget.attrs['placeholder'] = 'Select fertilizer type'
+    
     class Meta:
         model = Plant
-        fields = ['name', 'species', 'soil_type', 'sunlight', 'region', 'watering_frequency']
+        fields = ['name', 'growth', 'soil_type', 'sunlight', 'watering_frequency', 'fertilizer_type']
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(

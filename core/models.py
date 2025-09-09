@@ -4,12 +4,26 @@ from django.contrib.auth.models import User
 # Create your models here.
 
 class Plant(models.Model):
+    GROWTH_CHOICES = [
+        ('slow', 'Slow'),
+        ('moderate', 'Moderate'),
+        ('fast', 'Fast'),
+    ]
+    
+    FERTILIZER_CHOICES = [
+        ('balanced', 'Balanced'),
+        ('organic', 'Organic'),
+        ('low-nitrogen', 'Low-nitrogen'),
+        ('acidic', 'Acidic'),
+        ('no', 'No fertilizer'),
+    ]
+    
     name = models.CharField(max_length=100)
-    species = models.CharField(max_length=100)
+    growth = models.CharField(max_length=20, choices=GROWTH_CHOICES, default='moderate')
     soil_type = models.CharField(max_length=100)
     sunlight = models.CharField(max_length=50)
-    region = models.CharField(max_length=100)
-    watering_frequency = models.CharField(max_length=50)
+    watering_frequency = models.CharField(max_length=100)  # Changed to text-based
+    fertilizer_type = models.CharField(max_length=20, choices=FERTILIZER_CHOICES, default='balanced')
 
     def __str__(self):
         return self.name

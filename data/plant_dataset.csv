@@ -1,0 +1,11 @@
+plant_name,species,soil_type,sunlight,region,watering_frequency,recommended_schedule,fertilizer,seasonal_care
+Rose,Rosa,Loamy,Full Sun,Tropical,3,Every 2 days,Monthly,Prune in winter
+Tulsi,Ocimum sanctum,Sandy loam,Partial Sun,Tropical,5,Daily,Monthly,Protect from frost
+Aloe Vera,Aloe barbadensis,Sandy,Indirect Light,Arid,1,Once a week,Rarely,Reduce watering in winter
+Sunflower,Helianthus,Loamy,Full Sun,Temperate,4,Every 3 days,Bi-weekly,Support stalk in spring
+Money Plant,Epipremnum aureum,Loamy,Indirect Light,Tropical,3,Every 2 days,Monthly,Trim yellow leaves
+Lavender,Lavandula,Sandy,Full Sun,Temperate,2,Twice a week,Bi-monthly,Mulch in winter
+Tomato,Solanum lycopersicum,Loamy,Full Sun,Temperate,4,Every 3 days,Weekly,Add compost in spring
+Basil,Ocimum basilicum,Sandy loam,Partial Sun,Tropical,5,Daily,Monthly,Pinch flowers
+Cactus,Opuntia,Sandy,Full Sun,Arid,1,Once a month,Rarely,No special care
+Fern,Nephrolepis,Clay,Partial Sun,Temperate,4,Every 3 days,Monthly,Keep humid in summer
